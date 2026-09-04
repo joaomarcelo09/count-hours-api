@@ -1,0 +1,41 @@
+# Deploy the Work Hours Tracker API to any Docker host.
+#
+#   1. Copy this file and an .env to the server.
+#   2. Set JWT_SECRET (required) in .env, plus optional overrides.
+#   3. docker compose up -d
+#
+# The API image is published by the CI workflow to GHCR.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-count}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hours}
+      POSTGRES_DB: ${POSTGRES_DB:-count_hours}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-count} -d ${POSTGRES_DB:-count_hours}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    image: ghcr.io/joaomarcelo09/count-hours-api:latest
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      DATABASE_URL: postgres://${POSTGRES_USER:-count}:${POSTGRES_PASSWORD:-hours}@postgres:5432/${POSTGRES_DB:-count_hours}?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://count-hours-ui.vercel.app,http://localhost:4200}
+      MIGRATIONS_PATH: /db/migrations
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

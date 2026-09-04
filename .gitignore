@@ -1,0 +1,22 @@
+# Binaries and build output
+/api
+/backend
+/bin/
+*.exe
+*.test
+*.out
+coverage.*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.idea/
+*.swp
+.DS_Store
+
+# Go workspace
+go.work
+go.work.sum
