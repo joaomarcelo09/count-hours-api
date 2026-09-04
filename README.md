@@ -84,6 +84,12 @@ The config lives in `sqlc.yaml` (package `sqlc`, output `internal/db/sqlc`, pgx/
 2. Never edit an already-applied migration file — golang-migrate checksums the applied ones and will refuse to start. Add a new migration instead.
 3. Run the API (or `docker compose up -d --build api`) to apply it.
 
+## CI / Deploy
+
+- **CI** (`.github/workflows/ci.yml`): on every push/PR runs `go build`, `go vet`, `go test`, and builds the Docker image.
+- **Publish**: on push to `main`, the image is built and pushed to GHCR as `ghcr.io/joaomarcelo09/count-hours-api` (`latest` + commit SHA).
+- **Deploy to a Docker host**: copy `deploy/docker-compose.yml` (plus `deploy/.env.example` → `.env`, setting a real `JWT_SECRET`) to the server and run `docker compose up -d`. It runs Postgres 16 + the API image.
+
 ## Conventions
 
 - All queries go through the generated `sqlc.Queries` in `internal/db/sqlc` — no raw SQL in handlers.
